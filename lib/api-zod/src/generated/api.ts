@@ -46,7 +46,7 @@ export const GetCommandsResponse = zod.array(GetCommandsResponseItem)
  * @summary Get public announcements
  */
 export const GetAnnouncementsResponseItem = zod.object({
-  "id": zod.number(),
+  "id": zod.string(),
   "title": zod.string(),
   "content": zod.string(),
   "type": zod.enum(['info', 'warning', 'update', 'maintenance']),
@@ -59,7 +59,7 @@ export const GetAnnouncementsResponse = zod.array(GetAnnouncementsResponseItem)
  * @summary Get public partners list
  */
 export const GetPartnersResponseItem = zod.object({
-  "id": zod.number(),
+  "id": zod.string(),
   "name": zod.string(),
   "description": zod.string(),
   "inviteUrl": zod.string(),
@@ -112,7 +112,7 @@ export const CreateAnnouncementBody = zod.object({
 })
 
 export const CreateAnnouncementResponse = zod.object({
-  "id": zod.number(),
+  "id": zod.string(),
   "title": zod.string(),
   "content": zod.string(),
   "type": zod.enum(['info', 'warning', 'update', 'maintenance']),
@@ -124,7 +124,7 @@ export const CreateAnnouncementResponse = zod.object({
  * @summary Delete an announcement
  */
 export const DeleteAnnouncementParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.string()
 })
 
 export const DeleteAnnouncementResponse = zod.object({
@@ -149,7 +149,7 @@ export const CreatePartnerBody = zod.object({
 })
 
 export const CreatePartnerResponse = zod.object({
-  "id": zod.number(),
+  "id": zod.string(),
   "name": zod.string(),
   "description": zod.string(),
   "inviteUrl": zod.string(),
@@ -163,7 +163,7 @@ export const CreatePartnerResponse = zod.object({
  * @summary Remove a partner
  */
 export const DeletePartnerParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.string()
 })
 
 export const DeletePartnerResponse = zod.object({

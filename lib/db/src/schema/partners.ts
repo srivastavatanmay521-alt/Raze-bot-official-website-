@@ -1,17 +1,20 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import mongoose, { Schema, type InferSchemaType } from "mongoose";
 
-export const partnersTable = pgTable("partners", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  inviteUrl: text("invite_url").notNull(),
-  iconUrl: text("icon_url"),
-  memberCount: text("member_count"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+const partnerSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    inviteUrl: { type: String, required: true },
+    iconUrl: { type: String, default: null },
+    memberCount: { type: String, default: null },
+  },
+  { timestamps: { createdAt: "createdAt", updatedAt: false } },
+);
 
-export const insertPartnerSchema = createInsertSchema(partnersTable).omit({ id: true, createdAt: true });
-export type InsertPartner = z.infer<typeof insertPartnerSchema>;
-export type Partner = typeof partnersTable.$inferSelect;
+export type PartnerDoc = InferSchemaType<typeof partnerSchema> & {
+  _id: mongoose.Types.ObjectId;
+  createdAt: Date;
+};
+
+export const Partner =
+  mongoose.models["Partner"] ?? mongoose.model("Partner", partnerSchema);

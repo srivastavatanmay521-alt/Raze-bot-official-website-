@@ -1,15 +1,24 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import mongoose, { Schema, type InferSchemaType } from "mongoose";
 
-export const announcementsTable = pgTable("announcements", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  type: text("type").notNull().default("info"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+const announcementSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ["info", "warning", "update", "maintenance"],
+      default: "info",
+      required: true,
+    },
+  },
+  { timestamps: { createdAt: "createdAt", updatedAt: false } },
+);
 
-export const insertAnnouncementSchema = createInsertSchema(announcementsTable).omit({ id: true, createdAt: true });
-export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
-export type Announcement = typeof announcementsTable.$inferSelect;
+export type AnnouncementDoc = InferSchemaType<typeof announcementSchema> & {
+  _id: mongoose.Types.ObjectId;
+  createdAt: Date;
+};
+
+export const Announcement =
+  mongoose.models["Announcement"] ??
+  mongoose.model("Announcement", announcementSchema);

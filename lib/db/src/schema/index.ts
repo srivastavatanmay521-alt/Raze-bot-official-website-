@@ -1,3 +1,3 @@
 export * from "./announcements";
-export * from "./stats_override";
 export * from "./partners";
+export * from "./stats_override";

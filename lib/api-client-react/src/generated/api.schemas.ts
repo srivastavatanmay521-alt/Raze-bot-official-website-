@@ -40,7 +40,7 @@ export const AnnouncementType = {
 } as const;
 
 export interface Announcement {
-  id: number;
+  id: string;
   title: string;
   content: string;
   type: AnnouncementType;
@@ -66,7 +66,7 @@ export interface AnnouncementInput {
 }
 
 export interface Partner {
-  id: number;
+  id: string;
   name: string;
   description: string;
   inviteUrl: string;

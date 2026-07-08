@@ -1,23 +1,23 @@
 import { Router, type IRouter } from "express";
-import { desc } from "drizzle-orm";
-import { db, partnersTable } from "@workspace/db";
+import { connectDB, Partner } from "@workspace/db";
 import { GetPartnersResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/partners", async (_req, res): Promise<void> => {
-  const rows = await db
-    .select()
-    .from(partnersTable)
-    .orderBy(desc(partnersTable.createdAt));
+  await connectDB();
+  const rows = await Partner.find().sort({ createdAt: -1 }).lean();
 
   res.json(
     GetPartnersResponse.parse(
       rows.map((r) => ({
-        ...r,
+        id: String(r._id),
+        name: r.name,
+        description: r.description,
+        inviteUrl: r.inviteUrl,
         iconUrl: r.iconUrl ?? null,
         memberCount: r.memberCount ?? null,
-        createdAt: r.createdAt.toISOString(),
+        createdAt: (r.createdAt as Date).toISOString(),
       })),
     ),
   );

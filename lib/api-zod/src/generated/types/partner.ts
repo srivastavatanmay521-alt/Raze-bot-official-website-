@@ -7,7 +7,7 @@
  */
 
 export interface Partner {
-  id: number;
+  id: string;
   name: string;
   description: string;
   inviteUrl: string;

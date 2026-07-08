@@ -1,6 +1,12 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, announcementsTable, statsOverrideTable, partnersTable } from "@workspace/db";
+import mongoose from "mongoose";
+import {
+  connectDB,
+  Announcement,
+  Partner,
+  StatsOverride,
+  type StatsOverrideDoc,
+} from "@workspace/db";
 import {
   AdminLoginBody,
   AdminLoginResponse,
@@ -26,9 +32,13 @@ function requireEnv(key: string, devDefault: string): string {
   const val = process.env[key];
   if (!val) {
     if (IS_PROD) {
-      throw new Error(`Missing required environment variable: ${key}. Set it in your deployment environment.`);
+      throw new Error(
+        `Missing required environment variable: ${key}. Set it in your deployment environment.`,
+      );
     }
-    console.warn(`[admin] WARNING: ${key} not set — using insecure dev default. Never deploy without setting this.`);
+    console.warn(
+      `[admin] WARNING: ${key} not set — using insecure dev default. Never deploy without setting this.`,
+    );
     return devDefault;
   }
   return val;
@@ -54,7 +64,6 @@ router.post("/admin/login", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-
   if (
     parsed.data.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() ||
     parsed.data.password !== ADMIN_PASSWORD
@@ -62,164 +71,150 @@ router.post("/admin/login", async (req, res): Promise<void> => {
     res.status(401).json({ error: "Invalid credentials" });
     return;
   }
-
   res.json(AdminLoginResponse.parse({ success: true, token: ADMIN_TOKEN }));
 });
 
 router.get("/admin/stats", async (req, res): Promise<void> => {
   if (!requireAuth(req, res)) return;
+  await connectDB();
 
-  const [override] = await db
-    .select()
-    .from(statsOverrideTable)
-    .orderBy(statsOverrideTable.updatedAt)
-    .limit(1);
-
+  const override = await StatsOverride.findById("singleton").lean<StatsOverrideDoc>();
   const [announcementCount, partnerCount] = await Promise.all([
-    db.$count(announcementsTable),
-    db.$count(partnersTable),
+    Announcement.countDocuments(),
+    Partner.countDocuments(),
   ]);
 
-  const stats = {
-    servers: override?.servers ?? 1247,
-    users: override?.users ?? 89432,
-    commandsRun: override?.commandsRun ?? 4182903,
-    uptime: formatUptime(Date.now() - startTime),
-    announcements: announcementCount,
-    partners: partnerCount,
-    lastUpdated: new Date().toISOString(),
-  };
-
-  res.json(GetAdminStatsResponse.parse(stats));
+  res.json(
+    GetAdminStatsResponse.parse({
+      servers: override?.servers ?? 1247,
+      users: override?.users ?? 89432,
+      commandsRun: override?.commandsRun ?? 4182903,
+      uptime: formatUptime(Date.now() - startTime),
+      announcements: announcementCount,
+      partners: partnerCount,
+      lastUpdated: new Date().toISOString(),
+    }),
+  );
 });
 
 router.post("/admin/announcements", async (req, res): Promise<void> => {
   if (!requireAuth(req, res)) return;
-
   const parsed = CreateAnnouncementBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-
-  const [row] = await db
-    .insert(announcementsTable)
-    .values({
-      title: parsed.data.title,
-      content: parsed.data.content,
-      type: parsed.data.type,
-    })
-    .returning();
-
+  await connectDB();
+  const doc = await Announcement.create({
+    title: parsed.data.title,
+    content: parsed.data.content,
+    type: parsed.data.type,
+  });
   res.status(201).json(
     CreateAnnouncementResponse.parse({
-      ...row,
-      createdAt: row.createdAt.toISOString(),
+      id: String(doc._id),
+      title: doc.title,
+      content: doc.content,
+      type: doc.type,
+      createdAt: (doc.createdAt as Date).toISOString(),
     }),
   );
 });
 
 router.delete("/admin/announcements/:id", async (req, res): Promise<void> => {
   if (!requireAuth(req, res)) return;
-
-  const params = DeleteAnnouncementParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  const parsed = DeleteAnnouncementParams.safeParse(req.params);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
-
-  const [deleted] = await db
-    .delete(announcementsTable)
-    .where(eq(announcementsTable.id, params.data.id))
-    .returning();
-
-  if (!deleted) {
+  if (!mongoose.isValidObjectId(parsed.data.id)) {
     res.status(404).json({ error: "Announcement not found" });
     return;
   }
-
+  await connectDB();
+  const result = await Announcement.findByIdAndDelete(parsed.data.id);
+  if (!result) {
+    res.status(404).json({ error: "Announcement not found" });
+    return;
+  }
   res.json(DeleteAnnouncementResponse.parse({ success: true }));
 });
 
 router.post("/admin/partners", async (req, res): Promise<void> => {
   if (!requireAuth(req, res)) return;
-
   const parsed = CreatePartnerBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-
-  const [row] = await db
-    .insert(partnersTable)
-    .values({
-      name: parsed.data.name,
-      description: parsed.data.description,
-      inviteUrl: parsed.data.inviteUrl,
-      iconUrl: parsed.data.iconUrl ?? null,
-      memberCount: parsed.data.memberCount ?? null,
-    })
-    .returning();
-
+  await connectDB();
+  const doc = await Partner.create({
+    name: parsed.data.name,
+    description: parsed.data.description,
+    inviteUrl: parsed.data.inviteUrl,
+    iconUrl: parsed.data.iconUrl ?? null,
+    memberCount: parsed.data.memberCount ?? null,
+  });
   res.status(201).json(
     CreatePartnerResponse.parse({
-      ...row,
-      iconUrl: row.iconUrl ?? null,
-      memberCount: row.memberCount ?? null,
-      createdAt: row.createdAt.toISOString(),
+      id: String(doc._id),
+      name: doc.name,
+      description: doc.description,
+      inviteUrl: doc.inviteUrl,
+      iconUrl: doc.iconUrl ?? null,
+      memberCount: doc.memberCount ?? null,
+      createdAt: (doc.createdAt as Date).toISOString(),
     }),
   );
 });
 
 router.delete("/admin/partners/:id", async (req, res): Promise<void> => {
   if (!requireAuth(req, res)) return;
-
-  const params = DeletePartnerParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  const parsed = DeletePartnerParams.safeParse(req.params);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
-
-  const [deleted] = await db
-    .delete(partnersTable)
-    .where(eq(partnersTable.id, params.data.id))
-    .returning();
-
-  if (!deleted) {
+  if (!mongoose.isValidObjectId(parsed.data.id)) {
     res.status(404).json({ error: "Partner not found" });
     return;
   }
-
+  await connectDB();
+  const result = await Partner.findByIdAndDelete(parsed.data.id);
+  if (!result) {
+    res.status(404).json({ error: "Partner not found" });
+    return;
+  }
   res.json(DeletePartnerResponse.parse({ success: true }));
 });
 
 router.post("/admin/stats-override", async (req, res): Promise<void> => {
   if (!requireAuth(req, res)) return;
-
   const parsed = UpdateStatsOverrideBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-
-  await db.delete(statsOverrideTable);
-  const [row] = await db
-    .insert(statsOverrideTable)
-    .values({
+  await connectDB();
+  await StatsOverride.findByIdAndUpdate(
+    "singleton",
+    {
       servers: parsed.data.servers ?? null,
       users: parsed.data.users ?? null,
       commandsRun: parsed.data.commandsRun ?? null,
-    })
-    .returning();
-
-  const stats = {
-    servers: row.servers ?? 1247,
-    users: row.users ?? 89432,
-    commandsRun: row.commandsRun ?? 4182903,
-    uptime: formatUptime(Date.now() - startTime),
-  };
-
-  res.json(UpdateStatsOverrideResponse.parse(stats));
+    },
+    { upsert: true, new: true },
+  );
+  const override = await StatsOverride.findById("singleton").lean<StatsOverrideDoc>();
+  res.json(
+    UpdateStatsOverrideResponse.parse({
+      servers: override?.servers ?? 1247,
+      users: override?.users ?? 89432,
+      commandsRun: override?.commandsRun ?? 4182903,
+      uptime: formatUptime(Date.now() - startTime),
+    }),
+  );
 });
 
 export default router;

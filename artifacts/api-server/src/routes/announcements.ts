@@ -1,22 +1,21 @@
 import { Router, type IRouter } from "express";
-import { desc } from "drizzle-orm";
-import { db, announcementsTable } from "@workspace/db";
+import { connectDB, Announcement } from "@workspace/db";
 import { GetAnnouncementsResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-router.get("/announcements", async (req, res): Promise<void> => {
-  const rows = await db
-    .select()
-    .from(announcementsTable)
-    .orderBy(desc(announcementsTable.createdAt))
-    .limit(20);
+router.get("/announcements", async (_req, res): Promise<void> => {
+  await connectDB();
+  const rows = await Announcement.find().sort({ createdAt: -1 }).limit(20).lean();
 
   res.json(
     GetAnnouncementsResponse.parse(
       rows.map((r) => ({
-        ...r,
-        createdAt: r.createdAt.toISOString(),
+        id: String(r._id),
+        title: r.title,
+        content: r.content,
+        type: r.type,
+        createdAt: (r.createdAt as Date).toISOString(),
       })),
     ),
   );

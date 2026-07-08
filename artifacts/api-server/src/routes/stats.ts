@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, statsOverrideTable } from "@workspace/db";
+import { connectDB, StatsOverride, type StatsOverrideDoc } from "@workspace/db";
 import { GetBotStatsResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-// Bot start time for uptime calculation
 const startTime = Date.now();
 
 function formatUptime(ms: number): string {
@@ -17,8 +16,9 @@ function formatUptime(ms: number): string {
   return `${minutes}m`;
 }
 
-router.get("/stats", async (req, res): Promise<void> => {
-  const [override] = await db.select().from(statsOverrideTable).orderBy(statsOverrideTable.updatedAt).limit(1);
+router.get("/stats", async (_req, res): Promise<void> => {
+  await connectDB();
+  const override = await StatsOverride.findById("singleton").lean<StatsOverrideDoc>();
 
   const stats = {
     servers: override?.servers ?? 1247,

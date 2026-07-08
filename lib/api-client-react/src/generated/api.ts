@@ -666,7 +666,7 @@ export const useCreateAnnouncement = <TError = ErrorType<ErrorResponse>,
       return useMutation(getCreateAnnouncementMutationOptions(options));
     }
 
-export const getDeleteAnnouncementUrl = (id: number,) => {
+export const getDeleteAnnouncementUrl = (id: string,) => {
 
 
 
@@ -677,7 +677,7 @@ export const getDeleteAnnouncementUrl = (id: number,) => {
 /**
  * @summary Delete an announcement
  */
-export const deleteAnnouncement = async (id: number, options?: RequestInit): Promise<SuccessResponse> => {
+export const deleteAnnouncement = async (id: string, options?: RequestInit): Promise<SuccessResponse> => {
 
   return customFetch<SuccessResponse>(getDeleteAnnouncementUrl(id),
   {
@@ -693,8 +693,8 @@ export const deleteAnnouncement = async (id: number, options?: RequestInit): Pro
 
 
 export const getDeleteAnnouncementMutationOptions = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAnnouncement>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteAnnouncement>>, TError,{id: number}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAnnouncement>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAnnouncement>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deleteAnnouncement'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -706,7 +706,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAnnouncement>>, {id: number}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAnnouncement>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
           return  deleteAnnouncement(id,requestOptions)
@@ -727,11 +727,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  * @summary Delete an announcement
  */
 export const useDeleteAnnouncement = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAnnouncement>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAnnouncement>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof deleteAnnouncement>>,
         TError,
-        {id: number},
+        {id: string},
         TContext
       > => {
       return useMutation(getDeleteAnnouncementMutationOptions(options));
@@ -808,7 +808,7 @@ export const useCreatePartner = <TError = ErrorType<ErrorResponse>,
       return useMutation(getCreatePartnerMutationOptions(options));
     }
 
-export const getDeletePartnerUrl = (id: number,) => {
+export const getDeletePartnerUrl = (id: string,) => {
 
 
 
@@ -819,7 +819,7 @@ export const getDeletePartnerUrl = (id: number,) => {
 /**
  * @summary Remove a partner
  */
-export const deletePartner = async (id: number, options?: RequestInit): Promise<SuccessResponse> => {
+export const deletePartner = async (id: string, options?: RequestInit): Promise<SuccessResponse> => {
 
   return customFetch<SuccessResponse>(getDeletePartnerUrl(id),
   {
@@ -835,8 +835,8 @@ export const deletePartner = async (id: number, options?: RequestInit): Promise<
 
 
 export const getDeletePartnerMutationOptions = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePartner>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deletePartner>>, TError,{id: number}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePartner>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePartner>>, TError,{id: string}, TContext> => {
 
 const mutationKey = ['deletePartner'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -848,7 +848,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePartner>>, {id: number}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePartner>>, {id: string}> = (props) => {
           const {id} = props ?? {};
 
           return  deletePartner(id,requestOptions)
@@ -869,11 +869,11 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
  * @summary Remove a partner
  */
 export const useDeletePartner = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePartner>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePartner>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof deletePartner>>,
         TError,
-        {id: number},
+        {id: string},
         TContext
       > => {
       return useMutation(getDeletePartnerMutationOptions(options));

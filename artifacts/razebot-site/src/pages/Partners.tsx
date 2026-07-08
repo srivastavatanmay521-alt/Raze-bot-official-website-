@@ -101,7 +101,7 @@ export function Partners() {
 }
 
 function PartnerCard({ partner }: { partner: {
-  id: number
+  id: string
   name: string
   description: string
   inviteUrl: string

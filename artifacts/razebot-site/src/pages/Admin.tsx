@@ -410,7 +410,7 @@ function PartnersPanel({ token }: { token: string }) {
   )
 }
 
-function DeleteButton({ id, token, type }: { onDelete: () => void; id: number; token: string; type: "announcement" | "partner" }) {
+function DeleteButton({ id, token, type }: { onDelete: () => void; id: string; token: string; type: "announcement" | "partner" }) {
   const queryClient = useQueryClient()
   const delAnn = useDeleteAnnouncement({ request: { headers: { Authorization: `Bearer ${token}` } } })
   const delPartner = useDeletePartner({ request: { headers: { Authorization: `Bearer ${token}` } } })
