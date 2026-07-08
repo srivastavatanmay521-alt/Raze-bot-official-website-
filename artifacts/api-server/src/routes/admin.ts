@@ -20,9 +20,23 @@ import { startTime, formatUptime } from "./stats";
 
 const router: IRouter = Router();
 
-const ADMIN_EMAIL = process.env["ADMIN_EMAIL"] ?? "void@razebot.site";
-const ADMIN_PASSWORD = process.env["ADMIN_PASSWORD"] ?? "R@zeB0t#Admin2025";
-const ADMIN_TOKEN = process.env["ADMIN_TOKEN"] ?? "razebot-secret-token-xyz";
+const IS_PROD = process.env["NODE_ENV"] === "production";
+
+function requireEnv(key: string, devDefault: string): string {
+  const val = process.env[key];
+  if (!val) {
+    if (IS_PROD) {
+      throw new Error(`Missing required environment variable: ${key}. Set it in your deployment environment.`);
+    }
+    console.warn(`[admin] WARNING: ${key} not set — using insecure dev default. Never deploy without setting this.`);
+    return devDefault;
+  }
+  return val;
+}
+
+const ADMIN_EMAIL    = requireEnv("ADMIN_EMAIL",    "void@razebot.site");
+const ADMIN_PASSWORD = requireEnv("ADMIN_PASSWORD", "R@zeB0t#Admin2025");
+const ADMIN_TOKEN    = requireEnv("ADMIN_TOKEN",    "razebot-dev-token-change-me");
 
 function requireAuth(req: any, res: any): boolean {
   const auth = req.headers["authorization"] as string | undefined;
